@@ -9,7 +9,7 @@ protocol ospf v3 ospf6 {
 
   area 0 {
 {% for interface in ospf.interfaces | default([]) %}
-    interface "{{ interface }}" {
+    interface "{{ interface.name }}" {
       hello 5; 
       dead 20;
 {% if interface.ttl_security | default(false) %}
@@ -19,7 +19,7 @@ protocol ospf v3 ospf6 {
 {% endfor %}
 
 {% for interface in ospf.stub_interfaces | default([]) %}
-    interface "{{ interface }}" {
+    interface "{{ interface.name }}" {
       stub;
     };
 {% endfor %}
@@ -37,7 +37,7 @@ protocol ospf v3 ospf4 {
 
   area 0 {
 {% for interface in ospf.interfaces | default([]) %}
-    interface "{{ interface }}" {
+    interface "{{ interface.name }}" {
       hello 5; 
       dead 20;
 {% if interface.ttl_security | default(false) %}
@@ -47,7 +47,7 @@ protocol ospf v3 ospf4 {
 {% endfor %}
 
 {% for interface in ospf.stub_interfaces | default([]) %}
-    interface "{{ interface }}" {
+    interface "{{ interface.name }}" {
       stub;
     };
 {% endfor %}

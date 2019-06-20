@@ -133,8 +133,10 @@ static_routes:
 ```
 ospf:
   interfaces:
-    - eth0
-    - eth1
+    - name: eth0
+    - name: eth1
+    - name: gre1
+      ttl_security: yes
 
   stub_interfaces:
     - lo 
