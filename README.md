@@ -22,7 +22,7 @@ Here we define the global settings valid for all routers of a specific group
 ```
 asn: 202739
 
-# RPKI validation is enabled and invalid will be rejected
+# RPKI validation is enabled and invalids will be rejected
 rpki_validation: yes
 rpki_validator:
   host: 127.0.0.1
@@ -77,7 +77,7 @@ peers:
       export: ebgp_as54321_out
     type: upstream
     rtbh_community: (54321,666)
-    rules: # our upstream uses the community (54321,200) to tag his customer routes. we use this to set the local pref.
+    rules: # our upstream uses the community (54321,200) to tag his customer routes, we use this to set the local pref
       - when:
           community: (54321,200)
         then:
