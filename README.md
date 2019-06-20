@@ -6,7 +6,7 @@ In this example I will give a brief example how a policy inventory could look li
 
 Given the following situation:
 * we are AS202739 (routing-rocks) located in DUS
-* we want to peer with AS206356 Freifunk Essen on DE-CIX DUS and FRA
+* we want to peer with AS206356 Freifunk Essen on DE-CIX DUS and FRA using prefix limits
 * DE-CIX FRA is a remote peering
 * we will only configure 1 router
 * we have an downstream with the imaginary ASN 12345 announcing AS_EXAMPLE
@@ -75,13 +75,15 @@ peers:
       import: upstream_as54321_in
       export: ebgp_as54321_out
     type: upstream
+    rtbh_community: (65100,666)
 
   206356: # ff-essen
     filters:
       import: peer_as206356_in
       export: ebgp_as206356_out
-    as_set: AS_FFE
     type: metro_peer
+    max_prefix:
+      ipv6: 5
 
   12345: # downstream
     downstream: yes
