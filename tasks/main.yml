@@ -1,19 +1,34 @@
 - name: Ensure config directory exists
-  file: name={{ bird_config_dir }}/ owner=root mode=0755 state=directory
-
+    name: "{{ bird_config_dir }}"
+    owner: root
+    mode: 0755
+    state: directory
+    
 - name: Ensure config subdir exists
-  file: name={{ bird_config_dir }}/bird.d owner=root mode=0755 state=directory
+  file: 
+    name: "{{ bird_config_dir }}/bird.d"
+    owner: root
+    mode: 0755
+    state: directory
 
 - name: Ensure as-sets dir exists
-  file: name={{ bird_config_dir }}/bird.d/as-sets owner=root mode=0755 state=directory
+  file: 
+    name: "{{ bird_config_dir }}/bird.d/as-sets"
+    owner: root
+    mode: 0755
+    state: directory
 
 - name: Configure bird
-  template: src=bird.conf.j2 dest={{ bird_config_dir }}/bird.conf owner=root mode=0644
+  template: 
+    src: bird.conf.conf.j2
+    dest: "{{ bird_config_dir }}/bird.conf"
+    owner: root 
+    mode: 0644
   notify: Reconfigure bird
 
 - template: 
-    src: {{ item }}.conf.j2 
-    dest: {{ bird_config_dir }}/bird.d/{{ item }}.conf 
+    src: "{{ item }}.conf.j2"
+    dest: "{{ bird_config_dir }}/bird.d/{{ item }}.conf"
     owner: root 
     mode: 0644
   with_items:
@@ -25,7 +40,7 @@
 
 - template: 
     src: ospf.conf.j2 
-    dest: {{ bird_config_dir }}/bird.d/ospf.conf 
+    dest: "{{ bird_config_dir }}/bird.d/ospf.conf" 
     owner: root 
     mode: 0644
   when: ospf is defined
@@ -33,7 +48,7 @@
 
 - template: 
     src: radv.conf.j2 
-    dest: {{ bird_config_dir }}/bird.d/radv.conf 
+    dest: "{{ bird_config_dir }}/bird.d/radv.conf"
     owner: root
     mode: 0644
   when: radv is defined
