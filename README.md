@@ -12,11 +12,12 @@ Given the following situation:
 * we have an downstream with the imaginary ASN 12345 announcing AS_EXAMPLE
 * we have an upstream with the imaginary ASN 54321
 * we do RPKI-validation and the validator is running on localhost (port 3323)
+* the setup is IPv6-only (IPv4 is configurred in the same way)
 
 ### Global Configuration (group_vars)
 Here we define the global settings valid for all routers of a specific group
 
-#### routing.yml
+routing.yml
 ```
 asn: 202739
 
@@ -31,10 +32,10 @@ last_resort_local_pref: 1
 
 # communities used to tag routes
 communities:
-  origin: (202739, 0, 1)
-  peer_import: (202739, 0, 2)
-  upstream_import: (202739, 0, 3)
-  downstream_import: (202739, 0, 4)
+  origin: (202739, 0, 1000)
+  peer_import: (202739, 0, 2000)
+  upstream_import: (202739, 0, 3000)
+  downstream_import: (202739, 0, 4000)
   filtered_bogon: (202739, 666, 1)
   filtered_own_prefix: (202739, 666, 2)
   filtered_own_communities: (202739, 666, 3)
@@ -51,6 +52,8 @@ filters:
   - name: ibgp_in
     prefixes:
       - 2001:678:1e0::/48{56,64}
+  - name: default_only
+    accept_default: yes
       
 # peer types are like templates defining common attributes for a group of peers
 peer_types:
@@ -84,9 +87,71 @@ peers:
     downstream: yes
     filters:
       import: peer_as12345_in
-      export: ebgp_as12345_out
+      export: default_only
+    as_set: AS_DOWNSTREAM
     type: metro_peer
+```
 
+### Metro configuration (group_vars)
+This is the common configuration for all routers in one metro 
+
+metro.yml
+```
+communities_metro:
+  origin: (202739, 0, 1100)
+  peer_import: (202739, 0, 2100)
+  upstream_import: (202739, 0, 3100)
+  downstream_import: (202739, 0, 4100)
+```
+
+### Router configuration (host_vars)
+Here we define the actual sessions for the peers defined in the global config
+
+router.yml
+```
+router_id: 100.64.0.1
+source_ipv6: 2001:678:1e0:999::1
+```
+
+static.yml
+```
+# we have to define the static default route to be able to announce it downstream 
+static_routes:
+  ipv6:
+    - "::/0 unreachable"
+```
+
+ospf.yml
+```
+ospf:
+  interfaces:
+    - eth0
+    - eth1
+
+  stub_interfaces:
+    - lo 
+```
+
+bgp.yml
+```
+peerings:
+  - asn: 54321
+    sessions:
+      - name: upstream_01
+        ip: 100.64.1.0
+
+  - asn: 12345
+    sessions:
+      - name: downstream_01
+        ip: 2001:678:1e0:888::2
+        
+  - asn: 206356
+    sessions:
+      - name: ff_essen_dus
+        ip: 2001:7f8:9e:0:3:2614:0:1
+      - name: ff_essen_fra
+        ip: 2001:7f8::3:2614:0:1
+        type: remote_peer
 ```
 
 ## AS-Sets
