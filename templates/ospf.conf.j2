@@ -12,7 +12,7 @@ protocol ospf v3 ospf6 {
     interface "{{ interface }}" {
       hello 5; 
       dead 20;
-{% if interface is match('^gre.*') %}
+{% if interface.ttl_security | default(false) %}
       ttl security on;
 {% endif %}
     };
@@ -40,7 +40,7 @@ protocol ospf v3 ospf4 {
     interface "{{ interface }}" {
       hello 5; 
       dead 20;
-{% if interface is match('^gre.*') %}
+{% if interface.ttl_security | default(false) %}
       ttl security on;
 {% endif %}
     };
