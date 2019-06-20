@@ -21,7 +21,7 @@
 
 - name: Configure bird
   template: 
-    src: bird.conf.conf.j2
+    src: bird.conf.j2
     dest: "{{ bird_config_dir }}/bird.conf"
     owner: root 
     mode: 0644
