@@ -2,7 +2,8 @@
 Bird 2.x routing policy used in routing-rocks (AS202739), Freifunk Essen (AS206356), etc.
 
 ## Requirements
-This policy role can be run on routers/hosts with an bird routing daemon 2.x installed.
+* bird routing daemon 2.x installed on the target machine
+* routinator installed on the target machine (if RPKI validation should be used)
 
 ## Inventory
 In this example I will give a brief example how a policy inventory could look like. This is an short example which was derived from the actual routing policy of the ASes running this policy.
