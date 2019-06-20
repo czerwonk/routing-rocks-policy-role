@@ -1,7 +1,7 @@
 protocol radv {
 {% for r in radv %}
   interface "{{ r.iface }}" {
-    link mtu 1360;
+    link mtu {{ radv_link_mtu }};
     prefix {{ r.prefix }} {
     };
     rdnss {{ r.dns }};
