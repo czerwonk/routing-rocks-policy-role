@@ -77,9 +77,9 @@ peers:
       export: ebgp_as54321_out
     type: upstream
     rtbh_community: (54321,666)
-    rules:
+    rules: # our upstream uses the community (54321,200) to tag his customer routes. we use this to set the local pref.
       - when:
-          community: (54321,220)
+          community: (54321,200)
         then:
           set_local_pref: 50000
 
