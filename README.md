@@ -65,6 +65,7 @@ peer_types:
   internal:
   upstream:
     local_pref: 100
+    as_prepend: 2
   metro_peer:
     local_pref: 10000
   remote_peer:
