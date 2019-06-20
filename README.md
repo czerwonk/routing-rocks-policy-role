@@ -17,7 +17,7 @@ Given the following situation:
 ### Global Configuration (group_vars)
 Here we define the global settings valid for all routers of a specific group
 
-routing.yml
+**routing.yml**
 ```
 asn: 202739
 
@@ -95,7 +95,7 @@ peers:
 ### Metro configuration (group_vars)
 This is the common configuration for all routers in one metro 
 
-metro.yml
+**metro.yml**
 ```
 communities_metro:
   origin: (202739, 0, 1100)
@@ -107,13 +107,13 @@ communities_metro:
 ### Router configuration (host_vars)
 Here we define the actual sessions for the peers defined in the global config
 
-router.yml
+**router.yml**
 ```
 router_id: 100.64.0.1
 source_ipv6: 2001:678:1e0:999::1
 ```
 
-static.yml
+**static.yml**
 ```
 # we have to define the static default route to be able to announce it downstream 
 static_routes:
@@ -121,7 +121,7 @@ static_routes:
     - "::/0 unreachable"
 ```
 
-ospf.yml
+**ospf.yml**
 ```
 ospf:
   interfaces:
@@ -132,7 +132,7 @@ ospf:
     - lo 
 ```
 
-bgp.yml
+**bgp.yml**
 ```
 peerings:
   - asn: 54321
