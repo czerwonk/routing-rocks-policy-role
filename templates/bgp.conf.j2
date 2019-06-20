@@ -1,0 +1,83 @@
+define BOGON_ASNS = [ 0,                      # RFC 7607
+                      23456,                  # RFC 4893 AS_TRANS
+                      64496..64511,           # RFC 5398 and documentation/example ASNs
+                      64512..65534,           # RFC 6996 Private ASNs
+                      65535,                  # RFC 7300 Last 16 bit ASN
+                      65536..65551,           # RFC 5398 and documentation/example ASNs
+                      65552..131071,          # IANA reserved ASNs https://www.mail-archive.com/uknof@lists.uknof.org.uk/msg03395.html
+                      4200000000..4294967294, # RFC 6996 Private ASNs
+                      4294967295 ];           # RFC 7300 Last 32 bit ASN
+{% if asn_whitelist is defined %}
+define WHITELIST_ASNS = [ {{ asn_whitelist }} ];
+{% endif %}
+
+{% if rpki_validation | default(true) %}
+roa4 table r4;
+roa6 table r6;
+
+protocol rpki {
+  roa4 { table r4; };
+  roa6 { table r6; };
+  remote "{{ rpki_validator.host }}" port {{ rpki_validator.port }};
+  retry keep 5;
+  refresh keep 30;
+  expire 600;
+}
+
+{% endif %}
+template bgp generic_bgp {
+  local as {{ asn }};
+  enable route refresh on;
+  keepalive time 10;
+  hold time 30;
+}
+
+function tag_origin() {
+  bgp_large_community.add({{ communities.origin }});
+{% if communities_metro is defined %}
+  bgp_large_community.add({{ communities_metro.origin }});
+{% endif %}
+}
+
+function tag_upstream() {
+  bgp_large_community.add({{ communities.upstream_import }});
+{% if communities_metro is defined %}
+  bgp_large_community.add({{ communities_metro.upstream_import }});
+{% endif %}
+}
+
+function tag_downstream() {
+  bgp_large_community.add({{ communities.downstream_import }});
+{% if communities_metro is defined %}
+  bgp_large_community.add({{ communities_metro.downstream_import }});
+{% endif %}
+}
+
+function tag_peering() {
+  bgp_large_community.add({{ communities.peer_import }});
+{% if communities_metro is defined %}
+  bgp_large_community.add({{ communities_metro.peer_import }});
+{% endif %}
+}
+
+function is_tagged_with_own_community() {
+  return bgp_large_community ~ [ ({{ asn }}, 0, *) ];
+}
+
+function is_downstream_route() {
+  return {{ communities.downstream_import }} ~ bgp_large_community;
+}
+
+function is_peer_route() {
+  return {{ communities.peer_import }} ~ bgp_large_community;
+}
+
+function is_bogon_asn() {
+{% if asn_whitelist is defined %}
+  if bgp_path.first ~ WHITELIST_ASNS then {
+    return false;
+  } 
+{% endif %}
+
+  return bgp_path ~ BOGON_ASNS;
+}

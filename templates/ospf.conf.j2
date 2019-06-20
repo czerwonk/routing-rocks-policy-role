@@ -1,0 +1,55 @@
+protocol ospf v3 ospf6 {
+{% if ecmp | default(false) %}
+  ecmp on;
+{% endif %}
+  ipv6 {
+    import filter ospf_in;
+    export filter ospf_out;
+  };
+
+  area 0 {
+{% for interface in ospf.interfaces | default([]) %}
+    interface "{{ interface }}" {
+      hello 5; 
+      dead 20;
+{% if interface is match('^gre.*') %}
+      ttl security on;
+{% endif %}
+    };
+{% endfor %}
+
+{% for interface in ospf.stub_interfaces | default([]) %}
+    interface "{{ interface }}" {
+      stub;
+    };
+{% endfor %}
+  };
+}
+
+protocol ospf v3 ospf4 {
+{% if ecmp | default(false) %}
+  ecmp on;
+{% endif %}
+  ipv4 {
+    import filter ospf_in;
+    export filter ospf_out;
+  };
+
+  area 0 {
+{% for interface in ospf.interfaces | default([]) %}
+    interface "{{ interface }}" {
+      hello 5; 
+      dead 20;
+{% if interface is match('^gre.*') %}
+      ttl security on;
+{% endif %}
+    };
+{% endfor %}
+
+{% for interface in ospf.stub_interfaces | default([]) %}
+    interface "{{ interface }}" {
+      stub;
+    };
+{% endfor %}
+  };
+}

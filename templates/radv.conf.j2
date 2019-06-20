@@ -1,0 +1,11 @@
+protocol radv {
+{% for r in radv %}
+  interface "{{ r.iface }}" {
+    link mtu 1360;
+    prefix {{ r.prefix }} {
+    };
+    rdnss {{ r.dns }};
+  };
+
+{% endfor %}
+}

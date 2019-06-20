@@ -1,0 +1,33 @@
+protocol static static4 {
+  ipv4 {
+    preference 1;
+  };
+{% for route in static_routes.ipv4 | default([]) %}
+  route {{ route }};
+{% endfor %}
+}
+
+protocol static static6 {
+  ipv6 {
+    preference 1;
+  };
+{% for route in static_routes.ipv6 | default([]) %}
+  route {{ route }};
+{% endfor %}
+}
+
+{% if static_prefix_routes | default(true) %}
+protocol static static_prefix4 {
+  ipv4;
+{% for prefix in prefixes.ipv4 | default([]) %}
+  route {{ prefix }} unreachable;
+{% endfor %}
+}
+
+protocol static static_prefix6 {
+  ipv6;
+{% for prefix in prefixes.ipv6 | default([]) %}
+  route {{ prefix }} unreachable;
+{% endfor %}
+}
+{% endif %}

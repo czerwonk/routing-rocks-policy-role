@@ -1,0 +1,47 @@
+{% for peering in peerings %}
+{% set peer = peers[peering.asn] %}
+{% set peer_type = peer_types[peering.type | default(peer.type)] %}
+{% for session in peering.sessions %}
+protocol bgp {{ session.name }} from generic_bgp {
+{% if peering.table is defined %}
+  table {{ peering.table }};
+{% endif %}
+{% if peering.local_as is defined %}
+  local as {{ peering.local_as }};
+{% endif %}
+  neighbor {{ session.ip }} as {{ peering.asn }};
+{% if session.source_ip is defined %}
+  source address {{ session.source_ip }};
+{% elif peering.source_ip is defined %}
+  source address {{ peering.source_ip }};
+{% endif %}
+  {% if session.ip | ipv6() == False %}ipv4{% else %}ipv6{% endif %} {
+     next hop self;
+     import keep filtered;
+{% set filters = (session.filters | default(peering.filters)) | default(peer.filters) %}
+     import filter {{ filters.import | default('drain') }};
+     export filter {{ filters.export | default('drain') }};
+{% if peers[peering.asn].max_prefix is defined %}
+     receive limit {{ session.ip | ipv6() | ternary(peer.max_prefix.ipv6, peer.max_prefix.ipv4) }};
+{% endif %}
+  };
+{% set local_pref = (session.local_pref | default(peering.local_pref | default(peer_type.local_pref))) %}
+{% if local_pref is defined and (local_pref | int) != 100 %}
+  default bgp_local_pref {{ local_pref }};
+{% endif %}
+{% if peering.multihop is defined %}
+  multihop {{ peering.multihop }};
+{% endif %}
+{% if peering.password is defined %}
+  password "{{ peering.password }}";
+{% endif %}
+{% if peering.rr_client | default(false) %}
+  rr client;
+{% endif %}
+{% if peering.hold_time is defined %}
+  hold time {{ peering.hold_time }};
+{% endif %}
+}
+
+{% endfor %}
+{% endfor %}

@@ -1,0 +1,72 @@
+define DRAINED = false;
+
+log syslog all;
+router id {{ router_id }};
+
+timeformat base     iso long;
+timeformat log      iso long;
+timeformat protocol iso long;
+timeformat route    iso long;
+
+protocol direct direct4 {
+  ipv4;
+  interface "*";
+}
+
+protocol direct direct6 {
+  ipv6;
+  interface "*";
+}
+
+protocol kernel kernel4 {
+  ipv4 {
+    export filter {
+  {% if source_ipv4 is defined %}
+      krt_prefsrc = {{ source_ipv4 }};
+  {% endif %}
+      accept;
+    };
+  };
+}
+
+protocol kernel kernel6 {
+  ipv6 {
+    export filter {
+  {% if source_ipv6 is defined %}
+      krt_prefsrc = {{ source_ipv6 }};
+  {% endif %}
+      accept;
+    };
+  };
+}
+{% if routing_tables is defined %}
+{% for table in routing_tables | default([]) %}
+
+ipv4 table {{ table.name }}_ipv4;
+protocol kernel kernel_{{ table.name }}_ipv4 {
+  kernel table {{ table.kernel_table }};
+  ipv4 {
+    table {{ table.name }}_ipv4;
+    import all;
+    export all;
+  };
+}
+
+ipv6 table {{ table.name }}_ipv6;
+protocol kernel kernel_{{ table.name }}_ipv6 {
+  kernel table {{ table.kernel_table }};
+  ipv6 {
+    table {{ table.name }}_ipv6;
+    import all;
+    export all;
+  };
+}
+{% endfor %}
+{% endif %}
+
+protocol device {
+  scan time 10;
+}
+
+include "{{ bird_config_dir }}/bird.d/as-sets/*.conf";
+include "{{ bird_config_dir }}/bird.d/*.conf";

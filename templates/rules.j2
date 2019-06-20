@@ -1,0 +1,20 @@
+{% for r in rules | default([]) %}
+{% if r.when.source_as is defined %}
+  if bgp_path.last = {{ r.when.source_as }}{% if r.ip_version is defined %} && net.type = NET_IP{{ r.ip_version }}{% endif %} then {
+{% elif r.when.prefix is defined %}
+  if net ~ [ {{ r.when.prefix }} ] then {
+{% elif r.when.community is defined %}
+  if {{ r.when.community }} ~ bgp_community then {
+{% elif r.when.large_community is defined %}
+  if {{ r.when.large_community }} ~ bgp_large_community then {
+{% endif %}
+{% if r.then.set_local_pref is defined %}
+    bgp_local_pref = {{ r.then.set_local_pref }};
+{% elif r.then.add_community is defined %}
+    bgp_community.add({{ r.then.add_community }});
+{% elif r.then.add_large_community is defined %}
+    bgp_large_community.add({{ r.then.add_large_community }});
+{% endif %}
+  }
+
+{% endfor %}

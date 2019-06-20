@@ -1,0 +1,410 @@
+function is_bogon() {
+  if is_bogon_asn() then {
+    return true;
+  }
+
+  return net ~ [
+    10.0.0.0/8{8,32},
+    172.16.0.0/12{8,32},
+    192.168.0.0/16{16,32},
+    169.254.0.0/16{16,32},
+    224.0.0.0/3{3,32},
+    100.64.0.0/10{10,32},
+    0.0.0.0/8{8,32},
+    127.0.0.0/8{8,32},
+    192.0.0.0/24{24,32},
+    198.18.0.0/15{15,32},
+    198.51.100.0/24{24,32},
+    203.0.113.0/24{24,32},
+    240.0.0.0/4{4,32},
+    255.255.255.255/32,
+    ::/128,
+    ::1/128,
+    fc00::/7{7,128},
+    fe80::/10{10,128},
+    2001::/32{32,128},
+    2001:0002::/48{48,128},
+    2001:0010::/28{28,128},
+    2002::/16{16,128},
+    2001:db8::/32{32,128},
+    ff00::/8{8,128},
+    3ffe::/16{16,128}
+  ];
+}
+
+function is_default_route() {
+  return net = 0.0.0.0/0 || net = ::/0;
+}
+
+function is_own_prefix() {
+{% for p in prefixes.ipv4 | default([]) %}
+  if net ~ {{ p }} then return true;
+{% endfor %}
+{% for p in prefixes.ipv6 | default([]) %}
+  if net ~ {{ p }} then return true;
+{% endfor %}
+  return false;
+}
+
+function is_peering_lan() {
+{% for asn in peers %}
+{% if peers[asn].ixp | default(false) %}
+  # AS{{ asn }}
+  if net ~ [ {{ peers[asn].peering_lans.ipv4 | default([]) | union(peers[asn].peering_lans.ipv6 | default([])) | join(', ') }} ] then {
+    return true;
+  }
+
+{% endif %}
+{% endfor %}
+  return false;
+}
+
+function is_rtbh() {
+{% for p in prefixes.ipv4 | default([]) %}
+  if net ~ [ {{ p }}{32,32} ] && gw = 192.168.2.1 then return true;
+{% endfor %}
+  return false;
+}
+
+{% if rpki_validation | default(yes) %}
+function is_rpki_invalid() {
+  if net.type = NET_IP4 then {
+    return roa_check(r4, net, bgp_path.last) = ROA_INVALID;
+  }
+
+  return roa_check(r6, net, bgp_path.last) = ROA_INVALID;
+}
+
+{% endif %}
+filter drain {
+  reject;
+}
+
+function is_upstream_route() {
+{% for peer in peers %}
+{% if peers[peer].upstream | default(false) %}
+  if bgp_path.first = {{ peer }} then return true;
+{% endif %}
+{% endfor %}
+  return false;
+}
+
+filter accept_all {
+  if DRAINED then reject;
+  accept;
+}
+
+filter full_view {
+  if DRAINED then reject;
+  if is_bogon() then reject;
+  if is_default_route() then reject;
+  if is_peering_lan() then reject;
+  
+  if net ~ [ 0.0.0.0/0{0,24}, ::/0{0,48} ] then {
+    accept;
+  }
+
+  reject;
+}
+
+function should_announce_ebgp() {
+  if (net.type = NET_IP4 && net.len > 24) || (net.type = NET_IP6 && net.len > 48) then {
+    return false;
+  }
+
+  if is_own_prefix() then {
+    tag_origin();
+    bgp_path.empty;
+    bgp_path.prepend({{ asn }});
+    return true; 
+  }
+
+  if is_downstream_route() then {
+    return true;
+  }
+
+  return false;
+}
+
+function default_ebgp_out() {
+  if DRAINED then {
+    return false;
+  }
+
+  if !defined(bgp_path) then {
+    bgp_path.empty;
+  }
+
+  if should_announce_ebgp() then {
+{% for i in range(path_prepend | default(0)) %}
+    bgp_path.prepend({{ asn }});
+{% endfor %}
+    return true;
+  }
+
+  return false;
+}
+
+function reject_bogon() {
+  if is_bogon() then {
+    print "Reject: Bogon prefix: ", net, " ", bgp_path;
+    bgp_large_community.add({{ communities.filtered_bogon }});
+    return true;
+  }
+
+  return false;
+}
+
+function reject_own_prefix() {
+  if is_own_prefix() then {
+    print "Reject: Own prefix: ", net, " ", bgp_path;
+    bgp_large_community.add({{ communities.filtered_own_prefix }});
+    return true;
+  }
+
+  return false;
+}
+
+function reject_own_communities() {
+  if is_tagged_with_own_community() then {
+    print "Reject: Tagged with our community: ", net, " ", bgp_path;
+    bgp_large_community.add({{ communities.filtered_own_communities }});
+    return true;
+  }
+
+  return false;
+} 
+
+function reject_rpki_invalid() {
+{% if rpki_validation | default(yes) %}
+  if is_rpki_invalid() then {
+    print "Reject: RPKI invalid: ", net, " ", bgp_path;
+    bgp_large_community.add({{ communities.filtered_rpki_invalid }});
+    return true;
+  }
+
+{% endif %}
+  return false;
+}
+
+function default_ebgp_in() {
+  if DRAINED then {
+    return false;
+  }
+
+  if reject_bogon() then {
+    return false;
+  }
+
+  if reject_own_prefix() then {
+    return false;
+  }
+
+  if reject_own_communities() then {
+    return false;
+  }
+
+  if reject_rpki_invalid() then {
+    return false;
+  }
+
+  return true;
+}
+
+function reject_invalid_neighbor_asn(int peer_asn) {
+  if bgp_path.first != peer_asn then {
+    print "Reject: Unexpected first ASN in AS path, expected ", peer_asn, ": ", net, " ", bgp_path;
+    bgp_large_community.add({{ communities.filtered_aspath_invalid }});
+    return true;
+  }
+
+  return false;
+}
+
+{% for peering in peerings | default([]) %}
+{% if peering.asn != asn %}
+{% set peer = peers[peering.asn] %}
+{% set peer_type = peer_types[peering.type | default(peer.type)] %}
+filter ebgp_as{{ peering.asn }}_out {
+{% if peer.rtbh_community is defined %}
+  if is_rtbh() then {
+    bgp_community.add(peer.rtbh_community);
+    accept;
+  }
+
+{% endif %}
+  if default_ebgp_out() then {
+{% set as_prepend = peering.as_prepend | default(peer.as_prepend | default(peer_type.as_prepend)) %}
+{% for i in range(as_prepend | default(0)) %}
+    bgp_path.prepend({{ asn }});
+{% endfor %}
+{% for c in peering.communities | default(peer.communities) | default([]) %}
+    bgp_community.add({{ c }});
+{% endfor %} 
+{% for c in peering.large_communities | default(peer.large_communities) | default([]) %}
+    bgp_large_community.add({{ c }});
+{% endfor %} 
+    accept;
+  }
+
+  reject;
+}
+
+{% endif %}
+{% endfor %}
+{% for peering in peerings | default([]) %}
+{% set peer = peers[peering.asn] %}
+{% if peer.upstream | default(false) %}
+filter upstream_as{{ peering.asn }}_in {
+  if !default_ebgp_in() then reject;
+  if reject_invalid_neighbor_asn({{ peering.asn }}) then reject;
+
+  tag_upstream();
+{% set rules = (peering.rules | default(peer.rules)) %}
+{% include "templates/rules.j2" %}
+
+  accept;
+}
+
+{% endif %}
+{% endfor %}
+{% for peering in peerings | default([]) %}
+{% set peer = peers[peering.asn] %}
+{% set peer_type = peer_types[peering.type | default(peer.type)] %}
+{% if peer.as_set is defined or peer.max_prefix is defined %}
+filter peer_as{{ peering.asn }}_in {
+  if !default_ebgp_in() then reject;
+{% if not peer.ixp | default(false) %}
+  if reject_invalid_neighbor_asn({{ peering.asn }}) then reject;
+{% endif %}
+
+{% if peer.as_set is defined %}
+  if net ~ {{ peer.as_set }} then {
+{% else %}
+  if net ~ [ 0.0.0.0/0{0,24}, ::/0{0,48} ] then {
+{% endif %}
+    tag_peering();
+{% if peer.downstream | default(false) %}
+    tag_downstream();
+{% endif %}
+{% if peer.ixp | default(false) %}
+
+    if is_upstream_route() then {
+      bgp_local_pref = {{ last_resort_local_pref }};
+    }
+
+{% endif %}
+{% set rules = (peering.rules | default(peer.rules)) %}
+{% include "templates/rules.j2" %}
+    accept;
+  }
+
+  reject;
+}
+
+{% endif %}
+{% endfor %}
+filter bb_ibgp_in {
+  if DRAINED then reject;
+
+  if is_own_prefix() && (net.type = NET_IP4 && net.len > 24) || (net.type = NET_IP6 && net.len > 52) then {
+    accept;
+  }
+
+  reject;
+}
+
+filter site_ibgp_out {
+  if DRAINED then reject;
+
+  if is_own_prefix() && (source = RTS_STATIC || source = RTS_DEVICE) then {
+    accept;
+  }
+
+  reject;
+}
+
+filter bb_ibgp_out {
+  if DRAINED then reject;
+
+  if is_own_prefix() && source = RTS_STATIC then {
+    accept;
+  }
+
+  reject;
+}
+
+filter bb_ibgp_full_out {
+  if is_default_route() then reject;
+  
+  if is_own_prefix() && (source = RTS_STATIC || source = RTS_DEVICE) then {
+    accept;
+  }
+
+  if net ~ [ 0.0.0.0/0{0,24}, ::/0{0,48} ] then {
+    accept;
+  }
+
+  reject;
+}
+
+filter bb_ibgp_metro_router_in {
+  if is_default_route() then reject;
+  if is_bogon() then reject;
+
+  if is_peer_route() then {
+    bgp_local_pref = 1000;
+  }
+  else {
+    bgp_local_pref = 5;
+  }
+
+  accept;
+}
+
+filter ospf_out {
+{% for p in prefixes.ipv4 | default([]) %}
+  if source = RTS_DEVICE && net ~ [ {{ p }}{32,32} ] then {
+    accept;
+  }
+{% endfor %}
+{% for p in prefixes.ipv6 | default([]) %}
+  if source = RTS_DEVICE && net ~ [ {{ p }}{128,128} ] then {
+    accept;
+  }
+{% endfor %}
+
+  if source = RTS_STATIC && is_default_route() && !DRAINED then {
+    accept;
+  }
+
+  reject;
+}
+
+filter ospf_in {
+{% for p in prefixes.ipv4 | default([]) %}
+  if net ~ [ {{ p }}{32,32} ] then {
+    accept;
+  }
+{% endfor %}
+{% for p in prefixes.ipv6 | default([]) %}
+  if net ~ [ {{ p }}{128,128} ] then {
+    accept;
+  }
+{% endfor %}
+
+  reject;
+}
+{% for filter in filters | default([]) %}
+
+filter {{ filter.name }} {
+  if DRAINED then reject;
+{% for p in filter.prefixes | default([]) %}
+  if net ~ [ {{ p }} ] then accept;
+{% endfor %}
+{% if filter.accept_default | default(false) %}
+  if is_default_route() then accept;
+{% endif %}
+  reject;
+}
+{% endfor %}
