@@ -151,7 +151,7 @@ peerings:
         ip: 2001:7f8:9e:0:3:2614:0:1
       - name: ff_essen_fra
         ip: 2001:7f8::3:2614:0:1
-        type: remote_peer
+        type: remote_peer # since DE-CIX FRA is remote peering for this router, we want to override the peering type here 
 ```
 
 ## AS-Sets
