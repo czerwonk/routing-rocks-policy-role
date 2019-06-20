@@ -11,6 +11,7 @@ Given the following situation:
 * we will only configure 1 router
 * we have an downstream with the imaginary ASN 12345 announcing AS_EXAMPLE
 * we have an upstream with the imaginary ASN 54321
+* we will ensure that traffic to our upstreams customers will stay local by using a special rule
 * we do RPKI-validation and the validator is running on localhost (port 3323)
 * the setup is IPv6-only (IPv4 is configurred in the same way)
 
@@ -75,7 +76,12 @@ peers:
       import: upstream_as54321_in
       export: ebgp_as54321_out
     type: upstream
-    rtbh_community: (65100,666)
+    rtbh_community: (54321,666)
+    rules:
+      - when:
+          community: (54321,220)
+        then:
+          set_local_pref: 50000
 
   206356: # ff-essen
     filters:
