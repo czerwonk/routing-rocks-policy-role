@@ -99,7 +99,7 @@ peers:
     filters:
       import: peer_as12345_in
       export: default_only
-    as_set: AS_DOWNSTREAM
+    as_set: AS_EXAMPLE
     type: metro_peer
 ```
 
