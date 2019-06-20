@@ -1,7 +1,8 @@
-# routing-rocks-policy-role
+# Routing Policy Ansible Role
 Bird 2.x routing policy used in routing-rocks (AS202739), Freifunk Essen (AS206356), etc.
 
 ## Requirements
+* local ansible installation
 * bird routing daemon 2.x installed on the target machine
 * routinator installed on the target machine (if RPKI validation should be used)
 
