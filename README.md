@@ -170,3 +170,9 @@ define AS_FFE = [
     2a0c:efc0::/29{29,48}
 ];
 ```
+
+## License
+(c) Daniel Czerwonk, 2019. Licensed under [MIT](LICENSE) license.
+
+## Bird routing daemon
+see http://bird.network.cz/
