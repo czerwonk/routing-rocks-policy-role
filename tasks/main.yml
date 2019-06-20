@@ -1,4 +1,5 @@
 - name: Ensure config directory exists
+  file: 
     name: "{{ bird_config_dir }}"
     owner: root
     mode: 0755
