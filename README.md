@@ -169,6 +169,20 @@ peerings:
         type: remote_peer # since DE-CIX FRA is remote peering for this router, we want to override the peering type here 
 ```
 
+## Rules
+Rules are very easy and basic way to do a little bit of TE. For now it is not possible to combine conditions. This is planned for future releases.
+
+### Conditions
+* source_as
+* prefix
+* community
+* large_community
+
+### Actions
+* set_local_pref
+* add_community
+* add_large_community
+
 ## AS-Sets
 The policy expects definitions for the AS_SET values used in the inventory in the `as-sets` directory. In my setup these prefix lists are auto generated via cronjob. This tooling for this task will be open sourced in the future. For now you have to make sure that theses files exists. In the example I used a AS_SET for a peering between routing-rocks and Freifunk Essen. This file looks like:
 ```
