@@ -1,4 +1,4 @@
-# Routing Policy Ansible Role
+# routing-rocks routing policy (ansible role)
 Bird 2.x routing policy used in routing-rocks (AS202739), Freifunk Essen (AS206356), etc.
 
 ## Requirements
