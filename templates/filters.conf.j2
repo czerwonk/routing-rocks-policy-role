@@ -363,12 +363,12 @@ filter bb_ibgp_metro_router_in {
 }
 
 filter ospf_out {
-{% for p in prefixes.ipv4 | default([]) %}
+{% for p in ospf.prefixes.ipv4 | default([]) %}
   if source = RTS_DEVICE && net ~ [ {{ p }}{32,32} ] then {
     accept;
   }
 {% endfor %}
-{% for p in prefixes.ipv6 | default([]) %}
+{% for p in ospf.prefixes.ipv6 | default([]) %}
   if source = RTS_DEVICE && net ~ [ {{ p }}{128,128} ] then {
     accept;
   }
@@ -382,12 +382,12 @@ filter ospf_out {
 }
 
 filter ospf_in {
-{% for p in prefixes.ipv4 | default([]) %}
+{% for p in ospf.prefixes.ipv4 | default([]) %}
   if net ~ [ {{ p }}{32,32} ] then {
     accept;
   }
 {% endfor %}
-{% for p in prefixes.ipv6 | default([]) %}
+{% for p in ospf.prefixes.ipv6 | default([]) %}
   if net ~ [ {{ p }}{128,128} ] then {
     accept;
   }

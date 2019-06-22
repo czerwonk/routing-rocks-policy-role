@@ -146,6 +146,10 @@ ospf:
 
   stub_interfaces:
     - lo 
+
+  prefixes:
+    ipv6:
+      - 2001:678:1e0::/48 
 ```
 
 **bgp.yml**
