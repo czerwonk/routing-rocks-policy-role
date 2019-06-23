@@ -395,16 +395,33 @@ filter ospf_in {
 
   reject;
 }
-{% for filter in filters | default([]) %}
+{% for filter_name in filters | default([]) %}
+{% set filter = filters[filter_name] %}
 
-filter {{ filter.name }} {
-  if DRAINED then reject;
-{% for p in filter.prefixes | default([]) %}
-  if net ~ [ {{ p }} ] then accept;
-{% endfor %}
-{% if filter.accept_default | default(false) %}
-  if is_default_route() then accept;
+function accept_{{ filter_name }}() {
+{% if filter.prefixes is defined %}
+  if net ~ [ {{ filter.prefixes | join(', ') }} ] then {
+    return true;
+  }
 {% endif %}
+{% if filter.accept_default | default(false) %}
+  if is_default_route() then {
+    return true;
+  }
+{% endif %}
+
+  return false;
+}
+
+filter {{ filter_name }} {
+  if DRAINED then reject;
+
+  if accept_{{ filter_name }}() {
+{% set rules = filter.rules %}
+{% include "templates/rules.j2" %}
+    accept;
+  }
+
   reject;
 }
 {% endfor %}

@@ -55,10 +55,10 @@ prefixes:
 
 # global filters which can be used as alternative to the auto generated ones
 filters:
-  - name: ibgp_in
+  ibgp_in:
     prefixes:
       - 2001:678:1e0::/48{56,64}
-  - name: default_only
+  default_only:
     accept_default: yes
       
 # peer types are like templates defining common attributes for a group of peers
