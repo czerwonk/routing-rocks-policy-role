@@ -416,7 +416,7 @@ function accept_{{ filter_name }}() {
 filter {{ filter_name }} {
   if DRAINED then reject;
 
-  if accept_{{ filter_name }}() {
+  if accept_{{ filter_name }}() then {
 {% set rules = filter.rules %}
 {% include "templates/rules.j2" %}
     accept;
