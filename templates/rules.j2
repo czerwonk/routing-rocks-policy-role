@@ -16,6 +16,8 @@
     bgp_community.add({{ r.then.add_community }});
 {% elif r.then.add_large_community is defined %}
     bgp_large_community.add({{ r.then.add_large_community }});
+{% elif r.then.action is defined %}
+    {{ r.then.action }}; 
 {% endif %}
 {% if r.when is defined %}
   }
