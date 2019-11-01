@@ -130,9 +130,9 @@ source_ipv6: 2001:678:1e0:999::1
 **static.yml**
 ```
 # we have to define the static default route to be able to announce it downstream 
-static_routes:
-  ipv6:
-    - "::/0 unreachable"
+static_default_routes:
+  ipv4: no
+  ipv6: yes
 ```
 
 **ospf.yml**
