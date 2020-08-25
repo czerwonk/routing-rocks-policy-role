@@ -12,6 +12,7 @@ protocol ospf v3 ospf6 {
     interface "{{ interface.name }}" {
       hello 5; 
       dead 20;
+      type {{ interface.type | default('broadcast') }};
 {% if interface.ttl_security | default(false) %}
       ttl security on;
 {% endif %}
@@ -40,6 +41,7 @@ protocol ospf v3 ospf4 {
     interface "{{ interface.name }}" {
       hello 5; 
       dead 20;
+      type {{ interface.type | default('broadcast') }};
 {% if interface.ttl_security | default(false) %}
       ttl security on;
 {% endif %}
