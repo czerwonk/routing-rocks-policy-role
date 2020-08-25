@@ -21,6 +21,7 @@ protocol direct direct6 {
 protocol kernel kernel4 {
   ipv4 {
     export filter {
+      if source = RTS_DEVICE then reject;
   {% if source_ipv4 is defined %}
       krt_prefsrc = {{ source_ipv4 }};
   {% endif %}
