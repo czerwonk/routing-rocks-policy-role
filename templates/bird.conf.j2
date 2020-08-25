@@ -33,6 +33,7 @@ protocol kernel kernel4 {
 protocol kernel kernel6 {
   ipv6 {
     export filter {
+      if source = RTS_DEVICE then reject;
   {% if source_ipv6 is defined %}
       krt_prefsrc = {{ source_ipv6 }};
   {% endif %}
