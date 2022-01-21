@@ -28,6 +28,10 @@ protocol kernel kernel4 {
       accept;
     };
   };
+ 
+{% if ecmp | default(false) %}
+  merge paths on;
+{% endif %}
 }
 
 protocol kernel kernel6 {
@@ -40,6 +44,10 @@ protocol kernel kernel6 {
       accept;
     };
   };
+
+{% if ecmp | default(false) %}
+  merge paths on;
+{% endif %}
 }
 {% if routing_tables is defined %}
 {% for table in routing_tables | default([]) %}
