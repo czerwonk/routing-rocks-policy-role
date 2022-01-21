@@ -41,6 +41,9 @@ protocol bgp {{ session.name }} from generic_bgp {
 {% if peering.hold_time is defined %}
   hold time {{ peering.hold_time }};
 {% endif %}
+{% if peering.multipath | default(false) %}
+  merge paths on;
+{% endif %}
 }
 
 {% endfor %}
