@@ -72,6 +72,10 @@ function is_peer_route() {
   return {{ communities.peer_import }} ~ bgp_large_community;
 }
 
+function is_tier1_route() {
+  return bgp_path ~ [ 174, 209, 701, 702, 1239, 1299, 2914, 3257, 3320, 3356, 3549, 3561, 4134, 5511, 6453, 6461, 6762, 7018 ];
+}
+
 function is_bogon_asn() {
 {% if asn_whitelist is defined %}
   if bgp_path.first ~ WHITELIST_ASNS then {

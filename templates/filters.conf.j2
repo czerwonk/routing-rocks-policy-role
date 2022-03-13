@@ -155,6 +155,16 @@ function reject_bogon() {
   return false;
 }
 
+function reject_tier1() {
+  if is_tier1_route() then {
+    print "Reject: Tier1 prefix: ", net, " ", bgp_path;
+    bgp_large_community.add({{ communities.filtered_tier1 }});
+    return true;
+  }
+
+  return false;
+}
+
 function reject_own_prefix() {
   if is_own_prefix() then {
     print "Reject: Own prefix: ", net, " ", bgp_path;
@@ -276,6 +286,9 @@ filter peer_as{{ peering.asn }}_in {
   if !default_ebgp_in() then reject;
 {% if not peer.ixp | default(false) %}
   if reject_invalid_neighbor_asn({{ peering.asn }}) then reject;
+{% endif %}
+{% if not peer.allow_tier1_routes | default(false) %}
+  if reject_tier1() then reject;
 {% endif %}
 
 {% if peer.as_set is defined %}
