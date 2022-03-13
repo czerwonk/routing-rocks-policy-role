@@ -331,6 +331,10 @@ filter bb_ibgp_out {
     accept;
   }
 
+  if is_downstream_route() then {
+    accept;
+  } 
+
   reject;
 }
 
