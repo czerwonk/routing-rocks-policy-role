@@ -252,7 +252,9 @@ filter ebgp_as{{ peering.asn }}_out {
 {% if peer.upstream | default(false) %}
 filter upstream_as{{ peering.asn }}_in {
   reject_for_ebgp_in();
+{% if not peer.ixp | default(false) %}
   reject_invalid_neighbor_asn({{ peering.asn }});
+{% endif %}
 
   tag_upstream();
 {% set rules = (peering.rules | default(peer.rules)) %}
