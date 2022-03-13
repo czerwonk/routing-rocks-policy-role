@@ -149,40 +149,40 @@ function reject_bogon() {
   if is_bogon() then {
     print "Reject: Bogon prefix: ", net, " ", bgp_path;
     bgp_large_community.add({{ communities.filtered_bogon }});
-    return true;
+    reject; 
   }
+}
 
-  return false;
+function reject_long_aspath() {
+  if bgp_path.len > {{ max_aspath_length }} then {
+    print "Reject: Too long AS path: ", net, " ", bgp_path;
+    bgp_large_community.add({{ communities.filtered_aspath_length }});
+    reject; 
+  }
 }
 
 function reject_tier1() {
   if is_tier1_route() then {
     print "Reject: Tier1 prefix: ", net, " ", bgp_path;
     bgp_large_community.add({{ communities.filtered_tier1 }});
-    return true;
+    reject; 
   }
-
-  return false;
 }
 
 function reject_own_prefix() {
   if is_own_prefix() then {
     print "Reject: Own prefix: ", net, " ", bgp_path;
     bgp_large_community.add({{ communities.filtered_own_prefix }});
-    return true;
+    reject;
   }
-
-  return false;
 }
 
 function reject_own_communities() {
   if is_tagged_with_own_community() then {
     print "Reject: Tagged with our community: ", net, " ", bgp_path;
     bgp_large_community.add({{ communities.filtered_own_communities }});
-    return true;
+    reject;
   }
-
-  return false;
 } 
 
 function reject_rpki_invalid() {
@@ -190,45 +190,30 @@ function reject_rpki_invalid() {
   if is_rpki_invalid() then {
     print "Reject: RPKI invalid: ", net, " ", bgp_path;
     bgp_large_community.add({{ communities.filtered_rpki_invalid }});
-    return true;
+    reject;
   }
 
 {% endif %}
-  return false;
 }
 
-function default_ebgp_in() {
+function reject_for_ebgp_in() {
   if DRAINED then {
-    return false;
+    reject;
   }
 
-  if reject_bogon() then {
-    return false;
-  }
-
-  if reject_own_prefix() then {
-    return false;
-  }
-
-  if reject_own_communities() then {
-    return false;
-  }
-
-  if reject_rpki_invalid() then {
-    return false;
-  }
-
-  return true;
+  reject_bogon();
+  reject_long_aspath();
+  reject_own_prefix();
+  reject_own_communities();
+  reject_rpki_invalid();
 }
 
 function reject_invalid_neighbor_asn(int peer_asn) {
   if bgp_path.first != peer_asn then {
     print "Reject: Unexpected first ASN in AS path, expected ", peer_asn, ": ", net, " ", bgp_path;
     bgp_large_community.add({{ communities.filtered_aspath_invalid }});
-    return true;
+    reject;
   }
-
-  return false;
 }
 
 {% for peering in peerings | default([]) %}
@@ -266,8 +251,8 @@ filter ebgp_as{{ peering.asn }}_out {
 {% set peer = peers[peering.asn] %}
 {% if peer.upstream | default(false) %}
 filter upstream_as{{ peering.asn }}_in {
-  if !default_ebgp_in() then reject;
-  if reject_invalid_neighbor_asn({{ peering.asn }}) then reject;
+  reject_for_ebgp_in();
+  reject_invalid_neighbor_asn({{ peering.asn }});
 
   tag_upstream();
 {% set rules = (peering.rules | default(peer.rules)) %}
@@ -283,12 +268,12 @@ filter upstream_as{{ peering.asn }}_in {
 {% set peer_type = peer_types[peering.type | default(peer.type)] %}
 {% if peer.as_set is defined or peer.max_prefix is defined %}
 filter peer_as{{ peering.asn }}_in {
-  if !default_ebgp_in() then reject;
+  reject_for_ebgp_in();
 {% if not peer.ixp | default(false) %}
-  if reject_invalid_neighbor_asn({{ peering.asn }}) then reject;
+  reject_invalid_neighbor_asn({{ peering.asn }});
 {% endif %}
 {% if not peer.allow_tier1_routes | default(false) %}
-  if reject_tier1() then reject;
+  reject_tier1();
 {% endif %}
 
 {% if peer.as_set is defined %}

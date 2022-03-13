@@ -1,2 +1,3 @@
 bird_config_dir: /etc/bird
 radv_link_mtu: 1360
+max_aspath_length: 50
