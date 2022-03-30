@@ -294,7 +294,13 @@ filter peer_as{{ peering.asn }}_in {
 {% endif %}
 
 {% if peer.as_set is defined %}
-  if net ~ {{ peer.as_set }} then {
+{% if peer.as_set.ipv4 is defined and peer.as_set.ipv6 is defined %}
+  if net ~ {{ peer.as_set.ipv4 }} || net ~ {{ peer.as_set.ipv6 }} then {
+{% elif peer.as_set.ipv6 is defined %}
+  if net ~ {{ peer.as_set.ipv6 }} then {
+{% else %}
+  if net ~ {{ peer.as_set.ipv4 }} then {
+{% endif %}
 {% else %}
   if net ~ [ 0.0.0.0/0{0,24} ] || net ~ [ ::/0{0,48} ] then {
 {% endif %}

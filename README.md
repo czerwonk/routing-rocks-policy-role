@@ -47,6 +47,8 @@ communities:
   filtered_own_communities: (202739, 666, 3)
   filtered_rpki_invalid: (202739, 666, 4)
   filtered_aspath_invalid: (202739, 666, 5)
+  filtered_tier1: (202739, 666, 6)
+  filtered_aspath_length: (202739, 666, 7)
 
 # our prefixes announce
 prefixes:
@@ -102,7 +104,9 @@ peers:
     filters:
       import: peer_as12345_in
       export: default_only
-    as_set: AS_EXAMPLE
+    as_set:
+      ipv4: AS_EXAMPLE_IPv4
+      ipv6: AS_EXAMPLE_IPv6
     type: metro_peer
 ```
 
@@ -191,9 +195,12 @@ Rules are very easy and basic way to do a little bit of TE. For now it is not po
 ## AS-Sets
 The policy expects definitions for the AS_SET values used in the inventory in the `as-sets` directory. In my setup these prefix lists are auto generated via cronjob. This tooling for this task will be open sourced in the future. For now you have to make sure that theses files exists. In the example I used a AS_SET for a peering between routing-rocks and Freifunk Essen. This file looks like:
 ```
-define AS_FFE = [
-    194.48.228.0/22{22,24},
-    2a0c:efc0::/29{29,48}
+define AS_FFE_IPv4 = [
+    194.48.228.0/22{22,24}
+];
+
+define AS_FFE_IPv6 = [
+  2a0c:efc0::/29{29,48}
 ];
 ```
 
