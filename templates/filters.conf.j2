@@ -3,7 +3,7 @@ function is_bogon() {
     return true;
   }
 
-  return net ~ [
+  if net ~ [
     10.0.0.0/8{8,32},
     172.16.0.0/12{8,32},
     192.168.0.0/16{16,32},
@@ -17,7 +17,10 @@ function is_bogon() {
     198.51.100.0/24{24,32},
     203.0.113.0/24{24,32},
     240.0.0.0/4{4,32},
-    255.255.255.255/32,
+    255.255.255.255/32
+  ] then return true;
+
+  if net ~ [
     ::/128,
     ::1/128,
     fc00::/7{7,128},
@@ -29,7 +32,7 @@ function is_bogon() {
     2001:db8::/32{32,128},
     ff00::/8{8,128},
     3ffe::/16{16,128}
-  ];
+  ] then return true;
 }
 
 function is_default_route() {
@@ -50,10 +53,18 @@ function is_peering_lan() {
 {% for asn in peers %}
 {% if peers[asn].ixp | default(false) %}
   # AS{{ asn }}
-  if net ~ [ {{ peers[asn].peering_lans.ipv4 | default([]) | union(peers[asn].peering_lans.ipv6 | default([])) | join(', ') }} ] then {
+{% if peers[asn].peering_lans.ipv4 is defined %}
+  if net ~ [ {{ peers[asn].peering_lans.ipv4 | join(', ') }} ] then {
     return true;
   }
 
+{% endif %}
+{% if peers[asn].peering_lans.ipv6 is defined %}
+  if net ~ [ {{ peers[asn].peering_lans.ipv6 | join(', ') }} ] then {
+    return true;
+  }
+
+{% endif %}
 {% endif %}
 {% endfor %}
   return false;
@@ -100,7 +111,11 @@ filter full_view {
   if is_default_route() then reject;
   if is_peering_lan() then reject;
   
-  if net ~ [ 0.0.0.0/0{0,24}, ::/0{0,48} ] then {
+  if net ~ [ 0.0.0.0/0{0,24} ] then {
+    accept;
+  }
+
+  if net ~ [ ::/0{0,48} ] then {
     accept;
   }
 
