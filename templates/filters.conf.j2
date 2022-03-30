@@ -296,7 +296,7 @@ filter peer_as{{ peering.asn }}_in {
 {% if peer.as_set is defined %}
   if net ~ {{ peer.as_set }} then {
 {% else %}
-  if net ~ [ 0.0.0.0/0{0,24}, ::/0{0,48} ] then {
+  if net ~ [ 0.0.0.0/0{0,24} ] || net ~ [ ::/0{0,48} ] then {
 {% endif %}
     tag_peering();
 {% if peer.downstream | default(false) %}
@@ -360,7 +360,7 @@ filter bb_ibgp_full_out {
     accept;
   }
 
-  if net ~ [ 0.0.0.0/0{0,24}, ::/0{0,48} ] then {
+  if net ~ [ 0.0.0.0/0{0,24} ] || net ~ [ ::/0{0,48} ] then {
     accept;
   }
 
@@ -418,11 +418,11 @@ filter ospf_in {
 {% set filter = filters[filter_name] %}
 
 function accept_{{ filter_name }}() {
-{% if filter.prefixes is defined %}
-  if net ~ [ {{ filter.prefixes | join(', ') }} ] then {
+{% for pfx in filter.prefixes | default([]) %}
+  if net ~ [ {{ pfx }} ] then {
     return true;
   }
-{% endif %}
+{% endfor %}
 {% if filter.accept_default | default(false) %}
   if is_default_route() then {
     return true;
