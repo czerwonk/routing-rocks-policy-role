@@ -33,6 +33,8 @@ function is_bogon() {
     ff00::/8{8,128},
     3ffe::/16{16,128}
   ] then return true;
+  
+  return false;
 }
 
 function is_default_route() {
