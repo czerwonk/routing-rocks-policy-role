@@ -240,7 +240,7 @@ function reject_invalid_neighbor_asn(int peer_asn) {
 filter ebgp_as{{ peering.asn }}_out {
 {% if peer.rtbh_community is defined %}
   if is_rtbh() then {
-    bgp_community.add(peer.rtbh_community);
+    bgp_community.add({{ peer.rtbh_community }});
     accept;
   }
 
