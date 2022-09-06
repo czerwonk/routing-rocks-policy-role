@@ -93,6 +93,16 @@ filter drain {
   reject;
 }
 
+filter rtbh_in {
+  if DRAINED then reject;
+
+  if is_rtbh() then {
+    accept;
+  }
+
+  reject;
+}
+
 function is_upstream_route() {
 {% for peer in peers %}
 {% if peers[peer].upstream | default(false) %}
@@ -331,16 +341,6 @@ filter bb_ibgp_in {
   if DRAINED then reject;
 
   if is_own_prefix() && (net.type = NET_IP4 && net.len > 24) || (net.type = NET_IP6 && net.len > 52) then {
-    accept;
-  }
-
-  reject;
-}
-
-filter site_ibgp_out {
-  if DRAINED then reject;
-
-  if is_own_prefix() && (source = RTS_STATIC || source = RTS_DEVICE) then {
     accept;
   }
 
