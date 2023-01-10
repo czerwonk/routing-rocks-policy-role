@@ -41,6 +41,16 @@ function is_default_route() {
   return net = 0.0.0.0/0 || net = ::/0;
 }
 
+function is_own_origin_prefix() {
+{% for p in prefixes.ipv4 | default([]) %}
+  if net = {{ p }} then return true;
+{% endfor %}
+{% for p in prefixes.ipv6 | default([]) %}
+  if net = {{ p }} then return true;
+{% endfor %}
+  return false;
+}
+
 function is_own_prefix() {
 {% for p in prefixes.ipv4 | default([]) %}
   if net ~ {{ p }} then return true;
@@ -139,7 +149,7 @@ function should_announce_ebgp() {
     return false;
   }
 
-  if is_own_prefix() then {
+  if is_own_origin_prefix() then {
     tag_origin();
     bgp_path.empty;
     bgp_path.prepend({{ asn }});
