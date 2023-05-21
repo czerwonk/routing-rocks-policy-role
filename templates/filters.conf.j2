@@ -294,7 +294,7 @@ filter upstream_as{{ peering.asn }}_in {
 {% endif %}
 
   tag_upstream();
-{% set rules = (peering.rules | default(peer.rules)) %}
+{% set rules = (peering.rules | default(peer.rules | default([]))) %}
 {% include "templates/rules.j2" %}
 
   accept;
@@ -337,7 +337,7 @@ filter peer_as{{ peering.asn }}_in {
     }
 
 {% endif %}
-{% set rules = (peering.rules | default(peer.rules)) %}
+{% set rules = (peering.rules | default(peer.rules | default([]))) %}
 {% include "templates/rules.j2" %}
     accept;
   }
@@ -454,7 +454,7 @@ filter {{ filter_name }} {
   if DRAINED then reject;
 
   if accept_{{ filter_name }}() then {
-{% set rules = filter.rules %}
+{% set rules = filter.rules | default([]) %}
 {% include "templates/rules.j2" %}
     accept;
   }
