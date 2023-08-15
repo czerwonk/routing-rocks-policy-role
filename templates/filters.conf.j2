@@ -84,7 +84,7 @@ function is_peering_lan() {
 
 function is_rtbh() {
 {% for p in prefixes.ipv4 | default([]) %}
-  if net ~ [ {{ p }}{32,32} ] && gw = 192.168.2.1 then return true;
+  if net ~ [ {{ p }}{32,32} ]{{ rtbh_filter_extension }} then return true;
 {% endfor %}
   return false;
 }
