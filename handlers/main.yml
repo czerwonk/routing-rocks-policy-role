@@ -1,2 +1,2 @@
 - name: Reconfigure bird
-  shell: birdc configure check && birdc configure
+  ansible.builtin.shell: birdc configure check && birdc configure

@@ -1,33 +1,33 @@
 - name: Ensure config directory exists
-  file: 
+  ansible.builtin.file:
     name: "{{ bird_config_dir }}"
     owner: root
     mode: 0755
     state: directory
     
 - name: Ensure config subdir exists
-  file: 
+  ansible.builtin.file:
     name: "{{ bird_config_dir }}/bird.d"
     owner: root
     mode: 0755
     state: directory
 
 - name: Ensure as-sets dir exists
-  file: 
+  ansible.builtin.file:
     name: "{{ bird_config_dir }}/bird.d/as-sets"
     owner: root
     mode: 0755
     state: directory
 
 - name: Configure bird
-  template: 
+  ansible.builtin.template:
     src: bird.conf.j2
     dest: "{{ bird_config_dir }}/bird.conf"
     owner: root 
     mode: 0644
   notify: Reconfigure bird
 
-- template: 
+- ansible.builtin.template:
     src: "{{ item }}.conf.j2"
     dest: "{{ bird_config_dir }}/bird.d/{{ item }}.conf"
     owner: root 
@@ -39,7 +39,7 @@
     - peerings
   notify: Reconfigure bird
 
-- template: 
+- ansible.builtin.template:
     src: ospf.conf.j2 
     dest: "{{ bird_config_dir }}/bird.d/ospf.conf" 
     owner: root 
@@ -47,7 +47,7 @@
   when: ospf is defined
   notify: Reconfigure bird
 
-- template: 
+- ansible.builtin.template:
     src: radv.conf.j2 
     dest: "{{ bird_config_dir }}/bird.d/radv.conf"
     owner: root
