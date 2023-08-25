@@ -1,0 +1,4 @@
+formatter:
+  type: basic
+  max_line_length: 0
+  retain_line_breaks: true

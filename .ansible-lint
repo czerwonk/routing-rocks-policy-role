@@ -1,0 +1,14 @@
+profile: basic
+
+enable_list:
+  - fqcn
+  - no-free-form
+
+skip_list:
+  - name[missing]
+
+warn_list:
+  - deprecated-module
+  - yaml[indentation]
+
+offline: true
