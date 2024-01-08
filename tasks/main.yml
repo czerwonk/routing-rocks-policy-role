@@ -1,21 +1,21 @@
 - name: Ensure config directory exists
   ansible.builtin.file:
     name: "{{ bird_config_dir }}"
-    owner: root
+    owner: "{{ owner }}"
     mode: '755'
     state: directory
 
 - name: Ensure config subdir exists
   ansible.builtin.file:
     name: "{{ bird_config_dir }}/bird.d"
-    owner: root
+    owner: "{{ owner }}"
     mode: '755'
     state: directory
 
 - name: Ensure as-sets dir exists
   ansible.builtin.file:
     name: "{{ bird_config_dir }}/bird.d/as-sets"
-    owner: root
+    owner: "{{ owner }}"
     mode: '755'
     state: directory
 
@@ -23,14 +23,14 @@
   ansible.builtin.template:
     src: bird.conf.j2
     dest: "{{ bird_config_dir }}/bird.conf"
-    owner: root
+    owner: "{{ owner }}"
     mode: '644'
   notify: Reconfigure bird
 
 - ansible.builtin.template:
     src: "{{ item }}.conf.j2"
     dest: "{{ bird_config_dir }}/bird.d/{{ item }}.conf"
-    owner: root
+    owner: "{{ owner }}"
     mode: '644'
   with_items:
     - static
@@ -42,7 +42,7 @@
 - ansible.builtin.template:
     src: ospf.conf.j2
     dest: "{{ bird_config_dir }}/bird.d/ospf.conf"
-    owner: root
+    owner: "{{ owner }}"
     mode: '644'
   when: ospf is defined
   notify: Reconfigure bird
@@ -50,7 +50,7 @@
 - ansible.builtin.template:
     src: radv.conf.j2
     dest: "{{ bird_config_dir }}/bird.d/radv.conf"
-    owner: root
+    owner: "{{ owner }}"
     mode: '644'
   when: radv is defined
   notify: Reconfigure bird
