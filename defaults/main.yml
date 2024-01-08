@@ -2,3 +2,4 @@ bird_config_dir: /etc/bird
 radv_link_mtu: 1360
 max_aspath_length: 50
 rtbh_filter_extension: " && gw = 192.168.2.1"
+owner: "root"
