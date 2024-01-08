@@ -1,3 +1,3 @@
 - name: Reconfigure bird
   ansible.builtin.shell: birdc configure check && birdc configure
-  when: do_reconfigure | default(true)
+  when: (skip_handler | default(false)) == true
