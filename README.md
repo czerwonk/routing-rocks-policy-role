@@ -20,6 +20,42 @@ Given the following situation:
 * we do RPKI-validation and the validator is running on localhost (port 3323)
 * the setup is IPv6-only (IPv4 is configurred in the same way)
 
+## NixOS
+This bird configuration can also be used inside of NixOS.
+The module enables and configures ``services.bird2`` building and packaging the bird configuration by running ansible when running ``nixos-rebuild``.
+
+The NixOS module can be imported using flakes.
+```
+{
+  inputs = {
+    routing-rocks-policy.url = "github:czerwonk/routing-rocks-policy-role";
+  };
+
+  outputs = { self, nixpkgs, routing-rocks-policy, ... }:
+    {
+      nixosConfigurations.my-router = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          routing-rocks-policy.nixosModule
+          {
+            routing-rocks.bird2 = {
+              enable = true;
+              configYML = ''
+                ... put your config here or read it from filesystem (e.g. using builtins.readFile) ...
+              '';
+              asSets = ''
+                define AS_ROUTING_ROCKS = [
+                  2001:678:1e0::/48
+                ];
+              '';
+            };
+          }
+        ];
+      };
+    };
+}
+```
+
 ### Global Configuration (group_vars)
 Here we define the global settings valid for all routers of a specific group
 
