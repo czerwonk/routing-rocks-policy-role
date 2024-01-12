@@ -41,6 +41,10 @@ protocol bgp {{ session.name }} from generic_bgp {
 {% if peering.hold_time is defined %}
   hold time {{ peering.hold_time }};
 {% endif %}
+{% set local_role = (session.local_role | default(peering.local_role | default(peer_type.local_role))) %}
+{% if local_role is defined %}
+  local role {{ local_role }};
+{% endif %}
 }
 
 {% endfor %}

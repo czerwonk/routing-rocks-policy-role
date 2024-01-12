@@ -105,10 +105,13 @@ peer_types:
   upstream:
     local_pref: 100
     as_prepend: 2
+    local_role: customer
   metro_peer:
     local_pref: 10000
+    local_role: peer
   remote_peer:
     local_pref: 1000
+    local_role: peer
 
 peers:
   202739: # routing-rocks
