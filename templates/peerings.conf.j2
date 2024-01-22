@@ -29,6 +29,10 @@ protocol bgp {{ session.name }} from generic_bgp {
 {% if local_pref is defined and (local_pref | int) != 100 %}
   default bgp_local_pref {{ local_pref }};
 {% endif %}
+{% set med = (session.med | default(peering.med)) %}
+{% med is defined %}
+  default bgp_med {{ med }};
+{% endif %}
 {% if peering.multihop is defined %}
   multihop {{ peering.multihop }};
 {% endif %}
