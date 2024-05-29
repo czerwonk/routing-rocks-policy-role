@@ -431,7 +431,7 @@ filter ospf_in {
 {% endfor %}
 {% if ospf.accept_default | default(false) %}
   if is_default_route() then {
-    return true;
+    accept;
   }
 {% endif %}
 
