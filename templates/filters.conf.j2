@@ -429,6 +429,11 @@ filter ospf_in {
     accept;
   }
 {% endfor %}
+{% if ospf.accept_default | default(false) %}
+  if is_default_route() then {
+    return true;
+  }
+{% endif %}
 
   reject;
 }
