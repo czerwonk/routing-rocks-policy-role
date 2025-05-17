@@ -8,7 +8,7 @@
 with lib;
 
 let
-  cfg = config.routing-rocks.bird2;
+  cfg = config.routing-rocks.bird;
   birdConfig = (
     pkgs.callPackage ./package.nix {
       vars = cfg.configYML;
@@ -19,7 +19,7 @@ let
 in
 {
   options = {
-    routing-rocks.bird2 = {
+    routing-rocks.bird = {
       enable = mkEnableOption "Bird Routing Daemon";
       asSets = mkOption {
         type = types.lines;

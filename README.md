@@ -22,7 +22,7 @@ Given the following situation:
 
 ## NixOS
 This bird configuration can also be used inside of NixOS.
-The module enables and configures ``services.bird2`` building and packaging the bird configuration by running ansible when running ``nixos-rebuild``.
+The module enables and configures ``services.bird`` building and packaging the bird configuration by running ansible when running ``nixos-rebuild``.
 
 The NixOS module can be imported using flakes.
 ```
@@ -38,7 +38,7 @@ The NixOS module can be imported using flakes.
         modules = [
           routing-rocks-policy.nixosModule
           {
-            routing-rocks.bird2 = {
+            routing-rocks.bird = {
               enable = true;
               configYML = ''
                 ... put your config here or read it from filesystem (e.g. using builtins.readFile) ...
