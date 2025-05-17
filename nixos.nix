@@ -1,15 +1,23 @@
-{ pkgs, lib, config, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 
 with lib;
 
 let
   cfg = config.routing-rocks.bird2;
-  birdConfig = (pkgs.callPackage ./package.nix {
-    vars = cfg.configYML;
-    as-sets = cfg.asSets;
-  });
+  birdConfig = (
+    pkgs.callPackage ./package.nix {
+      vars = cfg.configYML;
+      as-sets = cfg.asSets;
+    }
+  );
 
-in {
+in
+{
   options = {
     routing-rocks.bird2 = {
       enable = mkEnableOption "Bird Routing Daemon";
@@ -33,11 +41,12 @@ in {
         '';
       };
     };
-  }; 
- 
+  };
+
   config = mkIf cfg.enable {
-    services.bird2 = {
+    services.bird = {
       enable = true;
+      package = pkgs.bird2;
       checkConfig = true;
       config = (builtins.readFile "${birdConfig}/bird.conf");
     };

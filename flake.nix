@@ -1,7 +1,9 @@
 {
   description = "routing-rocks routing policy";
 
-  outputs = { self }: {
-    nixosModule = import ./nixos.nix;
-  };
+  outputs =
+    { self }:
+    {
+      nixosModule = import ./nixos.nix;
+    };
 }

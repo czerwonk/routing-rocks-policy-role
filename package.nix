@@ -1,10 +1,11 @@
-{ lib
-, stdenvNoCC
-, python3
-, ansible
-, pkgs
-, vars
-, as-sets
+{
+  lib,
+  stdenvNoCC,
+  python3,
+  ansible,
+  pkgs,
+  vars,
+  as-sets,
 }:
 
 stdenvNoCC.mkDerivation {
