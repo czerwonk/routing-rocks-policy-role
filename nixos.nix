@@ -40,13 +40,18 @@ in
           This YAML based config is used as datasource to build the bird configuration
         '';
       };
+      package = mkOption {
+        type = types.package;
+        default = pkgs.bird2;
+        description = "Package to use for bird (default: pkgs.bird2)";
+      };
     };
   };
 
   config = mkIf cfg.enable {
     services.bird = {
       enable = true;
-      package = pkgs.bird2;
+      package = cfg.package;
       checkConfig = true;
       config = (builtins.readFile "${birdConfig}/bird.conf");
     };
