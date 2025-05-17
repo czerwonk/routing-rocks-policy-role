@@ -42,8 +42,8 @@ in
       };
       package = mkOption {
         type = types.package;
-        default = pkgs.bird2;
-        description = "Package to use for bird (default: pkgs.bird2)";
+        default = pkgs.bird3;
+        description = "Package to use for bird (default: pkgs.bird3)";
       };
     };
   };
