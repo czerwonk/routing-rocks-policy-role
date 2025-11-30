@@ -10,7 +10,7 @@
 
 stdenvNoCC.mkDerivation {
   pname = "routing-rocks-policy";
-  version = "2.1.17";
+  version = "2.1.18";
 
   src = ./.;
 

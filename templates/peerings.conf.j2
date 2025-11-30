@@ -15,14 +15,14 @@ protocol bgp {{ session.name }} from generic_bgp {
 {% elif peering.source_ip is defined %}
   source address {{ peering.source_ip }};
 {% endif %}
-  {% if session.ip | ipv6() == False %}ipv4{% else %}ipv6{% endif %} {
+  {% if session.ip | ansible.utils.ipv6 %}ipv6{% else %}ipv4{% endif %} {
      next hop self;
      import keep filtered;
 {% set filters = (session.filters | default(peering.filters)) | default(peer.filters) %}
      import filter {{ filters.import | default('drain') }};
      export filter {{ filters.export | default('drain') }};
 {% if peers[peering.asn].max_prefix is defined %}
-     receive limit {{ session.ip | ipv6() | ternary(peer.max_prefix.ipv6, peer.max_prefix.ipv4) }};
+     receive limit {{ (':' in session.ip) | ternary(peer.max_prefix.ipv6, peer.max_prefix.ipv4) }};
 {% endif %}
   };
 {% set local_pref = (session.local_pref | default(peering.local_pref | default(peer_type.local_pref))) %}
