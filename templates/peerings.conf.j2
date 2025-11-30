@@ -15,7 +15,7 @@ protocol bgp {{ session.name }} from generic_bgp {
 {% elif peering.source_ip is defined %}
   source address {{ peering.source_ip }};
 {% endif %}
-  {% if session.ip | ansible.utils.ipv6 %}ipv6{% else %}ipv4{% endif %} {
+  {% if ':' in session.ip %}ipv6{% else %}ipv4{% endif %} {
      next hop self;
      import keep filtered;
 {% set filters = (session.filters | default(peering.filters)) | default(peer.filters) %}
