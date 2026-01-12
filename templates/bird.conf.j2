@@ -1,4 +1,4 @@
-define DRAINED = false;
+define DRAINED = {{ drained | default(false) | lower }};
 
 log syslog all;
 router id {{ router_id }};
