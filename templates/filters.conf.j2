@@ -33,7 +33,7 @@ function is_bogon() {
     ff00::/8{8,128},
     3ffe::/16{16,128}
   ] then return true;
-  
+
   return false;
 }
 
@@ -366,19 +366,23 @@ filter bb_ibgp_out {
 
   if is_downstream_route() then {
     accept;
-  } 
+  }
 
   reject;
 }
 
 filter bb_ibgp_full_out {
   if is_default_route() then reject;
-  
+
   if is_own_prefix() && (source = RTS_STATIC || source = RTS_DEVICE) then {
     accept;
   }
 
   if net ~ [ 0.0.0.0/0{0,24} ] || net ~ [ ::/0{0,48} ] then {
+    accept;
+  }
+
+  if is_downstream_route() then {
     accept;
   }
 
